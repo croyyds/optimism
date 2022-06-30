@@ -45,7 +45,7 @@ contract CommonTest is Test {
 
         vm.label(alice, "alice");
         vm.label(bob, "bob");
-        vm.label(multisig, "bob");
+        vm.label(multisig, "multisig");
 
         // Make sure we have a non-zero base fee
         vm.fee(1000000000);
@@ -178,10 +178,12 @@ contract Messenger_Initializer is L2OutputOracle_Initializer {
         // Deploy the address manager
         vm.prank(multisig);
         addressManager = new Lib_AddressManager();
+        vm.label(address(addressManager), "AddressManager");
 
         // Setup implementation
         L1CrossDomainMessenger L1MessengerImpl = new L1CrossDomainMessenger();
         L1MessengerImpl.initialize(op);
+        vm.label(address(L1MessengerImpl), "L1MessengerImpl");
 
         // Setup the address manager and proxy
         vm.prank(multisig);
@@ -190,8 +192,11 @@ contract Messenger_Initializer is L2OutputOracle_Initializer {
             address(addressManager),
             "OVM_L1CrossDomainMessenger"
         );
+        vm.label(address(proxy), "L1CrossDomainMessenger_Proxy");
+
         L1Messenger = L1CrossDomainMessenger(address(proxy));
         L1Messenger.initialize(op);
+        vm.label(address(L1Messenger), "L1Messenger");
 
         vm.etch(
             Lib_PredeployAddresses.L2_CROSS_DOMAIN_MESSENGER,
@@ -338,6 +343,7 @@ contract Bridge_Initializer is Messenger_Initializer {
         // Deploy the L1 bridge and initialize it with the address of the
         // L1CrossDomainMessenger
         L1ChugSplashProxy proxy = new L1ChugSplashProxy(multisig);
+        vm.label(address(proxy), "L1StandardBridge_Proxy");
         vm.mockCall(
             multisig,
             abi.encodeWithSelector(iL1ChugSplashDeployer.isUpgrading.selector),
@@ -349,7 +355,6 @@ contract Bridge_Initializer is Messenger_Initializer {
 
         L1Bridge = L1StandardBridge(payable(address(proxy)));
         L1Bridge.initialize(payable(address(L1Messenger)));
-        vm.label(address(proxy), "L1StandardBridge");
 
         // Deploy the L2StandardBridge, move it to the correct predeploy
         // address and then initialize it
