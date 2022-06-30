@@ -187,7 +187,7 @@ func (bq *BatchQueue) ResetStep(ctx context.Context, l1Fetcher L1Fetcher) error 
 	}
 
 	// we are done resetting if we have sufficient distance from the next stage to produce coherent results once we reach the origin of that stage.
-	if bq.progress.Origin.Number+bq.config.SeqWindowSize < bq.next.SafeL2Head().L1Origin.Number || bq.progress.Origin.Number == 0 {
+	if bq.progress.Origin.Number+bq.config.SeqWindowSize < bq.next.SafeL2Head().L1Origin.Number || bq.progress.Origin.Number <= bq.config.L1ChainID.Uint64() {
 		bq.log.Debug("found reset origin for batch queue", "origin", bq.progress.Origin)
 		bq.inputs = bq.inputs[:0]
 		bq.inputs = append(bq.inputs, BatchesWithOrigin{Origin: bq.progress.Origin, Batches: nil})
